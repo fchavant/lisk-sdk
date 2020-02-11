@@ -109,9 +109,6 @@ const sortBy = (sort, options) => {
 	};
 };
 
-const sort = () => {};
-
 module.exports = {
-	sort,
 	sortBy,
 };

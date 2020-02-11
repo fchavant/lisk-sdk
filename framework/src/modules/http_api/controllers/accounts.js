@@ -87,15 +87,14 @@ AccountsController.getAccounts = async (context, next) => {
 
 	try {
 		const lastBlock = await channel.invoke('app:getLastBlock');
+		let supply = 0;
+		if (lastBlock.height) {
+			supply = await channel.invoke('app:calculateSupply', {
+				height: lastBlock.height,
+			});
+		}
 		const data = await storage.entities.Account.get(filters, options).map(
-			accountFormatter.bind(
-				null,
-				lastBlock.height
-					? await channel.invoke('app:calculateSupply', {
-							height: lastBlock.height,
-					  })
-					: 0,
-			),
+			accountFormatter.bind(null, supply),
 		);
 
 		return next(null, {
@@ -199,6 +198,7 @@ AccountsController.getMultisignatureMemberships = async (context, next) => {
 		account = await storage.entities.Account.getOne({ address });
 	} catch (error) {
 		if (error.code === 0) {
+			// eslint-disable-next-line require-atomic-updates
 			context.statusCode = 404;
 			return next(new Error('Multisignature membership account not found'));
 		}
